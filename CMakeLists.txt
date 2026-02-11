@@ -9,8 +9,8 @@ set(CMAKE_AUTORCC ON)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Widgets Quick QuickWidgets Qml)
-find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Widgets Quick QuickWidgets Qml)
+find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Widgets Quick QuickWidgets Qml Location Positioning)
+find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Widgets Quick QuickWidgets Qml Location Positioning)
 
 set(PROJECT_SOURCES
         main.cpp
@@ -28,10 +28,12 @@ if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
 
         trie.h
         grafo.h
+        dijkstra.h
 
         trie.cpp
         grafo.cpp
         dataloader.cpp
+        dijkstra.cpp
 
 
 
@@ -57,7 +59,14 @@ else()
     endif()
 endif()
 
-target_link_libraries(PelotasDijkstraMap PRIVATE Qt6::Widgets Qt6::Quick Qt6::QuickWidgets Qt6::Qml)
+target_link_libraries(PelotasDijkstraMap PRIVATE 
+    Qt6::Widgets 
+    Qt6::Quick 
+    Qt6::QuickWidgets 
+    Qt6::Qml
+    Qt6::Location
+    Qt6::Positioning
+)
 
 # Qt for iOS sets MACOSX_BUNDLE_GUI_IDENTIFIER automatically since Qt 6.1.
 # If you are developing for iOS or macOS you should consider setting an

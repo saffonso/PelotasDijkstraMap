@@ -58,3 +58,56 @@ void Dataloader::makeTrie(Trie& trie,const QJsonObject& labelsJson){
         trie.insert(label, nodeIds);
     }
 }
+
+QJsonArray Dataloader::loadNodesData() {
+    QString filePath = QString::fromStdString(datapath + "/nodes.json");
+    QFile file(filePath);
+
+    if (!file.open(QIODevice::ReadOnly)) {
+        std::cerr << "Erro ao abrir nodes.json" << std::endl;
+        return QJsonArray();
+    }
+
+    QByteArray data = file.readAll();
+    file.close();
+
+    QJsonDocument doc = QJsonDocument::fromJson(data);
+    return doc.array();
+}
+
+QJsonArray Dataloader::loadEdgesData() {
+    QString filePath = QString::fromStdString(datapath + "/edges.json");
+    QFile file(filePath);
+
+    if (!file.open(QIODevice::ReadOnly)) {
+        std::cerr << "Erro ao abrir edges.json" << std::endl;
+        return QJsonArray();
+    }
+
+    QByteArray data = file.readAll();
+    file.close();
+
+    QJsonDocument doc = QJsonDocument::fromJson(data);
+    return doc.array();
+}
+
+void Dataloader::fillGraph(Grafo& grafo, const QJsonArray& nodesArray, const QJsonArray& edgesArray) {
+    for (const QJsonValue& value : nodesArray) {
+        QJsonObject node = value.toObject();
+        long long id = static_cast<long long>(node["id"].toDouble());
+        double x = node["x"].toDouble(); 
+        double y = node["y"].toDouble(); 
+        
+        grafo.addNode(id, x, y);
+    }
+
+    for (const QJsonValue& value : edgesArray) {
+        QJsonObject edge = value.toObject();
+        long long u = static_cast<long long>(edge["u"].toDouble());
+        long long v = static_cast<long long>(edge["v"].toDouble());
+        
+        double length = edge["data"].toObject()["length"].toDouble();
+
+        grafo.addEdge(u, v, length);
+    }
+}

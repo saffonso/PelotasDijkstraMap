@@ -6,6 +6,7 @@
 #include <qjsonobject.h>
 #include <string>
 #include <unordered_map>
+#include <QJsonArray>
 
 class Dataloader
 {
@@ -14,9 +15,10 @@ private:
 public:
     Dataloader(const std::string& path);
 
-    bool loadNodes(Grafo& grafo);
+    QJsonArray loadNodesData();
+    QJsonArray loadEdgesData();
 
-    bool loadEdges(Grafo& grafo);
+    void fillGraph(Grafo& grafo, const QJsonArray& nodes, const QJsonArray& edges);
 
     QJsonObject loadLabelToNodes();
 

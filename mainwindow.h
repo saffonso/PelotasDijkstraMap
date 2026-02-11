@@ -4,6 +4,7 @@
 #include <QMainWindow>
 #include <QListWidget>
 #include "trie.h"
+#include "grafo.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui {
@@ -32,6 +33,9 @@ private slots:
     void onToItemClicked(QListWidgetItem* item);
     void onVerRotaClicked();
 
+    // Helper para desenhar no mapa
+    void drawPathOnMap(const std::vector<long long>& pathIds);
+
 private:
     void showPopup(QListWidget* popup, const std::vector<std::pair<std::string, std::vector<long long>>>& results, QLineEdit* lineEdit);
     void hidePopup(QListWidget* popup);
@@ -39,6 +43,7 @@ private:
     Ui::MainWindow *ui;
     
     Trie* trie;
+    Grafo grafo; // O nosso grafo
     
     QListWidget* fromPopup;
     QListWidget* toPopup;

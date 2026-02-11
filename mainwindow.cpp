@@ -1,10 +1,14 @@
 #include "mainwindow.h"
 #include "./ui_mainwindow.h"
 #include "dataloader.h"
+#include "dijkstra.h"
 #include <QMessageBox>
 #include <QVBoxLayout>
 #include <QLineEdit>
 #include <QDebug>
+#include <QQuickItem>
+#include <QVariant>
+#include <QGeoCoordinate>
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -18,16 +22,20 @@ MainWindow::MainWindow(QWidget *parent)
     ui->quickWidget->show();
 
     trie = new Trie();
-    Dataloader loader("C:\\Users\\santi\\Downloads");
-    QJsonObject labelsJson = loader.loadLabelToNodes();
+    Dataloader loader("C:\\Users\\Caio\\Documents\\PelotasDijkstraMap\\data");
+    
+    QJsonObject labelsJson = loader.loadLabelToNodes(); 
+    
+    QJsonArray nodesData = loader.loadNodesData();
+    QJsonArray edgesData = loader.loadEdgesData();
     
     if (labelsJson.isEmpty()) {
         QMessageBox::warning(this, "Aviso",
-            "Não foi possível carregar o arquivo label_to_nodes.json.\n"
-            "Autocomplete não estará disponível.\n"
-            "Coloque o arquivo em: ./data/label_to_nodes.json");
+            "Não foi possível carregar os dados.\n"
+            "Verifique se a pasta 'data' está correta.");
     } else {
         loader.makeTrie(*trie, labelsJson);
+        loader.fillGraph(grafo, nodesData, edgesData);
     }
     
     fromPopup = new QListWidget();
@@ -173,17 +181,57 @@ void MainWindow::onToItemClicked(QListWidgetItem* item)
 
 void MainWindow::onVerRotaClicked()
 {
-    qDebug() << "=== VEJA ROTA ===";
     
-    qDebug() << "De:" << selectedFromName << "(" << selectedFromNodeIds.size() << "nós)";
-    for (long long nodeId : selectedFromNodeIds) {
-        qDebug() << "  " << nodeId;
+    if (selectedFromNodeIds.empty() || selectedToNodeIds.empty()) {
+        QMessageBox::warning(this, "Aviso", "Selecione a origem e o destino primeiro.");
+        return;
     }
+
+    long long startNode = selectedFromNodeIds[0];
+    long long endNode = selectedToNodeIds[0];
     
-    qDebug() << "Para:" << selectedToName << "(" << selectedToNodeIds.size() << "nós)";
-    for (long long nodeId : selectedToNodeIds) {
-        qDebug() << "  " << nodeId;
+    PathResult result = Dijkstra::shortestPath(grafo, startNode, endNode);
+    
+    if (result.found) {
+        
+        drawPathOnMap(result.path);
+        
+        if (grafo.hasNode(startNode) && grafo.hasNode(endNode)) {
+            const Node& s = grafo.getNode(startNode);
+            const Node& e = grafo.getNode(endNode);
+            
+            QVariant startCoord = QVariant::fromValue(QGeoCoordinate(s.y, s.x));
+            QVariant endCoord = QVariant::fromValue(QGeoCoordinate(e.y, e.x));
+            
+            QObject* rootObject = ui->quickWidget->rootObject();
+            if (rootObject) {
+                 QMetaObject::invokeMethod(rootObject, "setMarkers",
+                                           Q_ARG(QVariant, startCoord),
+                                           Q_ARG(QVariant, endCoord));
+            }
+        }
+
+    } else {
+        QMessageBox::warning(this, "Aviso", "Não foi possível encontrar um caminho entre estes pontos.");
     }
-    
-    qDebug() << "=================";
 }
+
+void MainWindow::drawPathOnMap(const std::vector<long long>& pathIds) {
+    QVariantList pathCoordinates;
+    
+    for (long long id : pathIds) {
+        if (grafo.hasNode(id)) {
+            const Node& node = grafo.getNode(id);
+            pathCoordinates.append(QVariant::fromValue(QGeoCoordinate(node.y, node.x)));
+        }
+    }
+    
+    QObject* rootObject = ui->quickWidget->rootObject();
+    if (rootObject) {
+         QMetaObject::invokeMethod(rootObject, "setPath",
+                                   Q_ARG(QVariant, QVariant::fromValue(pathCoordinates)));
+    } else {
+        qDebug() << "Erro: RootObject do QML não encontrado!";
+    }
+}
+

@@ -5,6 +5,7 @@
 #include <vector>
 
 class Node{
+public: 
     long long id;
     double x;
     double y;
@@ -26,16 +27,12 @@ public:
 
     void addEdge(long long u, long long v, double length);
 
-    std::vector<std::pair<long long, double>>& getNeighbors(long long nodeId) const;
+    const std::vector<std::pair<long long, double>>& getNeighbors(long long nodeId) const;
 
     bool hasNode(long long nodeId) const;
 
     const Node& getNode(long long nodeId) const;
 
-    std::size_t getNodeCount() const;
-
-    std::size_t getEdgeCount() const;
-
 };
 
-#endif // GRAFO_H
+#endif
