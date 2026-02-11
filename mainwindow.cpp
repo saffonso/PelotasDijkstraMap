@@ -59,19 +59,8 @@ MainWindow::MainWindow(QWidget *parent)
     toPopup->setStyleSheet(fromPopup->styleSheet());
     toPopup->hide();
     
-    fromDebounceTimer = new QTimer(this);
-    fromDebounceTimer->setSingleShot(true);
-    fromDebounceTimer->setInterval(150);
-    
-    toDebounceTimer = new QTimer(this);
-    toDebounceTimer->setSingleShot(true);
-    toDebounceTimer->setInterval(150);
-    
     connect(ui->lineEdit, &QLineEdit::textChanged, this, &MainWindow::onFromTextChanged);
     connect(ui->lineEdit_2, &QLineEdit::textChanged, this, &MainWindow::onToTextChanged);
-    
-    connect(fromDebounceTimer, &QTimer::timeout, this, &MainWindow::performFromAutocomplete);
-    connect(toDebounceTimer, &QTimer::timeout, this, &MainWindow::performToAutocomplete);
     
     connect(fromPopup, &QListWidget::itemClicked, this, &MainWindow::onFromItemClicked);
     connect(toPopup, &QListWidget::itemClicked, this, &MainWindow::onToItemClicked);
@@ -89,23 +78,22 @@ MainWindow::~MainWindow()
 
 void MainWindow::onFromTextChanged(const QString& text)
 {
-    fromDebounceTimer->stop();
-    
     if (text.isEmpty()) {
         hidePopup(fromPopup);
         fromResults.clear();
         fromResults.shrink_to_fit();
         return;
     }
+
+    fromResults.clear();
+    fromResults.shrink_to_fit();
+    fromResults = trie->autocomplete(text.toStdString(), 5);
     
-    fromCurrentText = text;
-    fromDebounceTimer->start();
+    showPopup(fromPopup, fromResults, ui->lineEdit);
 }
 
 void MainWindow::onToTextChanged(const QString& text)
 {
-    toDebounceTimer->stop();
-    
     if (text.isEmpty()) {
         hidePopup(toPopup);
         toResults.clear();
@@ -113,30 +101,9 @@ void MainWindow::onToTextChanged(const QString& text)
         return;
     }
     
-    toCurrentText = text;
-    toDebounceTimer->start();
-}
-
-void MainWindow::performFromAutocomplete()
-{
-    if (fromCurrentText.isEmpty()) return;
-    
-    fromResults.clear();
-    fromResults.shrink_to_fit();
-    
-    fromResults = trie->autocomplete(fromCurrentText.toStdString(), 5);
-    
-    showPopup(fromPopup, fromResults, ui->lineEdit);
-}
-
-void MainWindow::performToAutocomplete()
-{
-    if (toCurrentText.isEmpty()) return;
-    
     toResults.clear();
     toResults.shrink_to_fit();
-    
-    toResults = trie->autocomplete(toCurrentText.toStdString(), 5);
+    toResults = trie->autocomplete(text.toStdString(), 5);
     
     showPopup(toPopup, toResults, ui->lineEdit_2);
 }

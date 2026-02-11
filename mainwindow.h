@@ -3,7 +3,6 @@
 
 #include <QMainWindow>
 #include <QListWidget>
-#include <QTimer>
 #include "trie.h"
 
 QT_BEGIN_NAMESPACE
@@ -29,8 +28,6 @@ public:
 private slots:
     void onFromTextChanged(const QString& text);
     void onToTextChanged(const QString& text);
-    void performFromAutocomplete();
-    void performToAutocomplete();
     void onFromItemClicked(QListWidgetItem* item);
     void onToItemClicked(QListWidgetItem* item);
     void onVerRotaClicked();
