@@ -9,6 +9,7 @@
 #include <QQuickItem>
 #include <QVariant>
 #include <QGeoCoordinate>
+#include <QDir>
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -22,8 +23,15 @@ MainWindow::MainWindow(QWidget *parent)
     ui->quickWidget->show();
 
     trie = new Trie();
-    Dataloader loader("C:\\Users\\Caio\\Documents\\PelotasDijkstraMap\\data");
-    
+    QDir dir (QCoreApplication::applicationDirPath());
+
+    dir.cdUp();
+    dir.cdUp();
+
+    QString dataPath = dir.filePath("data");
+    qDebug() << dataPath;
+
+    Dataloader loader(dataPath.toStdString());
     QJsonObject labelsJson = loader.loadLabelToNodes(); 
     
     QJsonArray nodesData = loader.loadNodesData();
